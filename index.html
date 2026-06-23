@@ -20,6 +20,7 @@ MathJax = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
 <style>
+  html { scroll-behavior: smooth; }
   body {
     font-family: -apple-system, "微软雅黑", "PingFang SC", "Noto Sans CJK SC", sans-serif;
     max-width: 920px;
@@ -29,6 +30,7 @@ MathJax = {
     color: #1a1a1a;
     font-size: 15px;
   }
+  h2:target, h3:target { background: #fff8e1; transition: background 1s; }
   h1 { text-align: center; font-size: 26px; margin: 30px 0 10px; }
   h2 { border-bottom: 2px solid #4a90d9; padding-bottom: 8px; margin-top: 35px; color: #1a3a6e; font-size: 20px; }
   h3 { color: #2a5a9e; margin-top: 25px; font-size: 17px; }
@@ -56,13 +58,33 @@ MathJax = {
 <body>
 <div id="content" class="tex2jax_process"></div>
 <script>
+// Custom heading renderer: generate IDs matching TOC links (#ch1 ~ #ch14)
+const chMap = {
+  '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+  '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
+  '十一': 11, '十二': 12, '十三': 13, '十四': 14
+};
+marked.use({
+  renderer: {
+    heading({ depth, text, raw }) {
+      const m = raw.match(/^#{2,3}\s+([一二三四五六七八九十]+)、/);
+      if (m && chMap[m[1]]) {
+        return `<h${depth} id="ch${chMap[m[1]]}">${text}</h${depth}>`;
+      }
+      // Non-chapter headings (目录, 复习优先级速览, subsections, etc.)
+      const id = text.replace(/<[^>]*>/g, '').toLowerCase()
+        .replace(/[^a-zA-Z0-9一-鿿]+/g, '-')
+        .replace(/^-|-$/g, '');
+      return `<h${depth} id="${id}">${text}</h${depth}>`;
+    }
+  }
+});
+
 fetch('高级算法期末复习资料.md')
   .then(response => response.text())
   .then(md => {
-    // Protect math delimiters from marked.js mangling underscores:
-    //   $$...$$  → \[...\]  (display math)
-    //   $...$    → \(...\)  (inline math)
-    // This prevents marked from interpreting _ inside math as italic markers.
+    // Protect math from marked.js: $$→\[ \] and $→\( \)
+    // Prevents _ inside $...$ from being mangled into <em> by marked
     md = md.replace(/\$\$([\s\S]*?)\$\$/g, '\\[$1\\]');
     md = md.replace(/(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g, '\\($1\\)');
 
