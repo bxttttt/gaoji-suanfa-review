@@ -59,6 +59,13 @@ MathJax = {
 fetch('高级算法期末复习资料.md')
   .then(response => response.text())
   .then(md => {
+    // Protect math delimiters from marked.js mangling underscores:
+    //   $$...$$  → \[...\]  (display math)
+    //   $...$    → \(...\)  (inline math)
+    // This prevents marked from interpreting _ inside math as italic markers.
+    md = md.replace(/\$\$([\s\S]*?)\$\$/g, '\\[$1\\]');
+    md = md.replace(/(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g, '\\($1\\)');
+
     document.getElementById('content').innerHTML = marked.parse(md, {
       breaks: false,
       gfm: true
