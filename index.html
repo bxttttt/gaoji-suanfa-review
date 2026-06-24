@@ -58,28 +58,6 @@ MathJax = {
 <body>
 <div id="content" class="tex2jax_process"></div>
 <script>
-// Custom heading renderer: generate IDs matching TOC links (#ch1 ~ #ch14)
-const chMap = {
-  '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
-  '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
-  '十一': 11, '十二': 12, '十三': 13, '十四': 14
-};
-marked.use({
-  renderer: {
-    heading({ depth, text, raw }) {
-      const m = raw.match(/^#{2,3}\s+([一二三四五六七八九十]+)、/);
-      if (m && chMap[m[1]]) {
-        return `<h${depth} id="ch${chMap[m[1]]}">${text}</h${depth}>`;
-      }
-      // Non-chapter headings (目录, 复习优先级速览, subsections, etc.)
-      const id = text.replace(/<[^>]*>/g, '').toLowerCase()
-        .replace(/[^a-zA-Z0-9一-鿿]+/g, '-')
-        .replace(/^-|-$/g, '');
-      return `<h${depth} id="${id}">${text}</h${depth}>`;
-    }
-  }
-});
-
 fetch('高级算法期末复习资料.md')
   .then(response => response.text())
   .then(md => {
